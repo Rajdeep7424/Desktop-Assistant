@@ -4,9 +4,13 @@ import wikipedia
 import webbrowser
 import os
 import speech_recognition as sr
-import psutil
 import pygetwindow as gw
 import subprocess
+import google.generativeai as genai
+import os
+
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
@@ -143,6 +147,19 @@ if __name__ == "__main__":
             speak(f'Here is what I found for {search_term} on google')
             print(f"ISWIA: Here is what I found for {search_term}")
 
+        elif 'gemini for' in query:
+            prompt = query.split('gemini for')[-1].strip()
+            response = model.generate_content(prompt)
+    # Try accessing the response content correctly
+            try:
+                response_content = response._result.candidates[0].content.parts[0].text
+                speak(response_content)
+                print(f"ISWIA: {response_content}")
+            except AttributeError as e:
+                print(f"Error accessing response content: {e}")
+                print("ISWIA: Error accessing the generated response.")
+
+
         elif "github for" in query:
             search_term = query.split("for")[-1]
             url = f"https://github.com/search?q={search_term}"
@@ -175,7 +192,7 @@ if __name__ == "__main__":
             print("ISWIA: Opening Visual Studio Code")
             os.startfile(path)
 
-        elif 'time' in query:
+        elif 'the time' in query:
             strTime = datetime.datetime.now().strftime("%H:%M:%S")
             speak(f"the time is {strTime}")
             print(f"ISWIA: The time is: {strTime}")
